@@ -3,9 +3,6 @@ on:
   push:
     branches: [experimental/a1-ramboot]
     paths: ['port/**', 'scripts/**', '.github/workflows/experimental-build.yml']
-  pull_request:
-    branches: [main]
-    paths: ['port/**', 'scripts/**', '.github/workflows/experimental-build.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +31,7 @@ jobs:
         run: |
           make download -j4
           make -j2 V=s
-      - name: Inspect result (no firmware distribution)
+      - name: Inspect RAM-only result
         working-directory: ${{ runner.temp }}/openwrt
         run: |
           set -euo pipefail
@@ -48,4 +45,16 @@ jobs:
           test -n "$image"
           dumpimage -l "$image"
           sha256sum "$image"
+          mkdir -p "$RUNNER_TEMP/a1-research"
+          cp "$image" "$RUNNER_TEMP/a1-research/"
+          cd "$RUNNER_TEMP/a1-research"
+          sha256sum "$(basename "$image")" > SHA256SUMS
+          printf '%s\n' 'Experimental RAM-only research image. Not safe to flash. No hardware validation.' > WARNING.txt
           echo 'Compile result only; not hardware validated and not safe to flash.'
+      - name: Retain RAM-only research artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: A1-RAM-ONLY-NOT-FOR-FLASHING
+          path: ${{ runner.temp }}/a1-research/
+          retention-days: 7
+          if-no-files-found: error
