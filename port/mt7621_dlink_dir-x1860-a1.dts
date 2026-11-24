@@ -1,0 +1,85 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// Experimental RAM-only board description. No persistent storage or radio.
+#include "mt7621.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "dlink,dir-x1860-a1", "mediatek,mt7621-soc";
+	model = "D-Link DIR-X1860 A1 (experimental RAM only)";
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		power-ok {
+			label = "power:ok";
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+		};
+		power-fail {
+			label = "power:fail";
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+		};
+		internet-ok {
+			label = "internet:ok";
+			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+		};
+		internet-fail {
+			label = "internet:fail";
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys";
+		reset {
+			label = "reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+		};
+		wps {
+			label = "wps";
+			linux,code = <KEY_WPS_BUTTON>;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+// Deliberately disable flash and PCIe until validated on physical hardware.
+&nand {
+	status = "disabled";
+};
+
+&pcie {
+	status = "disabled";
+};
+
+&gmac1 {
+	status = "disabled";
+};
+
+&switch0 {
+	ports {
+		port@0 {
+			status = "okay";
+			label = "lan1";
+		};
+		port@1 {
+			status = "okay";
+			label = "lan2";
+		};
+		port@2 {
+			status = "okay";
+			label = "lan3";
+		};
+		port@3 {
+			status = "okay";
+			label = "lan4";
+		};
+		port@4 {
+			status = "disabled";
+		};
+	};
+};
