@@ -1,0 +1,7 @@
+build/
+*.bin
+*.dec
+*.dtb
+*.zip
+*.pem
+*.key
