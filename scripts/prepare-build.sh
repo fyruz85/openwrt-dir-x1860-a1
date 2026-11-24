@@ -30,6 +30,7 @@ CONFIG_TARGET_ramips_mt7621=y
 CONFIG_TARGET_ramips_mt7621_DEVICE_dlink_dir-x1860-a1=y
 CONFIG_TARGET_ROOTFS_INITRAMFS=y
 # CONFIG_TARGET_ROOTFS_SQUASHFS is not set
+CONFIG_PACKAGE_kmod-mt7915-firmware=y
 CONFIG_PACKAGE_kmod-wireguard=y
 CONFIG_PACKAGE_wireguard-tools=y
 CONFIG_PACKAGE_luci=y
@@ -43,7 +44,7 @@ grep -qx 'CONFIG_TARGET_ramips_mt7621_DEVICE_dlink_dir-x1860-a1=y' .config
 grep -qx 'CONFIG_TARGET_ROOTFS_INITRAMFS=y' .config
 grep -qx 'CONFIG_PACKAGE_kmod-wireguard=y' .config
 grep -qx 'CONFIG_PACKAGE_wireguard-tools=y' .config
-for pkg in luci luci-proto-wireguard dropbear dnsmasq firewall4; do
+for pkg in kmod-mt7915-firmware kmod-mt7915e luci luci-proto-wireguard dropbear dnsmasq firewall4; do
   grep -qx "CONFIG_PACKAGE_${pkg}=y" .config
 done
 echo 'Prepared experimental source; not compiled or hardware validated.'
