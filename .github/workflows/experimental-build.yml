@@ -44,6 +44,7 @@ jobs:
           image="$(find "$dir" -maxdepth 1 -name '*dlink_dir-x1860-a1*initramfs-kernel.bin' -print -quit)"
           test -n "$image"
           dumpimage -l "$image"
+          bash "$GITHUB_WORKSPACE/scripts/inspect-ram.sh" "$image"
           sha256sum "$image"
           mkdir -p "$RUNNER_TEMP/a1-research"
           cp "$image" "$RUNNER_TEMP/a1-research/"
