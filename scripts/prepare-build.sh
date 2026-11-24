@@ -13,8 +13,8 @@ python3 - <<'PY'
 from pathlib import Path
 p = Path('target/linux/ramips/mt7621/base-files/etc/board.d/02_network')
 s = p.read_text()
-needle = '\tcase "$board" in\n'
-assert needle in s, 'network configuration anchor changed'
+needle = '\tcase $board in\n'
+assert s.count(needle) >= 1, 'network configuration anchor changed'
 s = s.replace(needle, needle + '\tdlink,dir-x1860-a1)\n\t\tucidef_set_interface_lan "lan1 lan2 lan3 lan4"\n\t\t;;\n', 1)
 p.write_text(s)
 PY
