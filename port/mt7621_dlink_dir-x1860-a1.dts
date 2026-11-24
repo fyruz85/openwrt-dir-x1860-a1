@@ -56,8 +56,15 @@
 	status = "disabled";
 };
 
+// Stock A1 evidence: GMAC1 RGMII to PHY4; keep switch port 4 disabled.
 &gmac1 {
-	status = "disabled";
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+};
+
+&ethphy4 {
+	/delete-property/ interrupts;
 };
 
 &switch0 {
