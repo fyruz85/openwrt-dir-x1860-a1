@@ -1,0 +1,61 @@
+name: Experimental A1 compile (not for flashing)
+on:
+  push:
+    branches: [experimental/a1-ramboot]
+    paths: ['port/**', 'scripts/**', '.github/workflows/experimental-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: experimental-a1-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  compile:
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'experimental/a1-ramboot')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget device-tree-compiler u-boot-tools
+      - name: Check out upstream
+        run: |
+          git clone https://github.com/openwrt/openwrt.git "$RUNNER_TEMP/openwrt"
+          git -C "$RUNNER_TEMP/openwrt" checkout 13dc286814c646a2f03dc27e5bf2a34206e0242d
+      - name: Prepare experimental target
+        run: bash scripts/prepare-build.sh "$RUNNER_TEMP/openwrt"
+      - name: Compile
+        working-directory: ${{ runner.temp }}/openwrt
+        run: |
+          make download -j4
+          make -j2 V=s
+      - name: Inspect RAM-only result
+        working-directory: ${{ runner.temp }}/openwrt
+        run: |
+          set -euo pipefail
+          dir=bin/targets/ramips/mt7621
+          test -d "$dir"
+          if find "$dir" -type f \( -name '*factory.bin' -o -name '*recovery.bin' -o -name '*sysupgrade.bin' \) | grep -q .; then
+            echo 'Unexpected persistent image; rejecting build'
+            exit 1
+          fi
+          image="$(find "$dir" -maxdepth 1 -name '*dlink_dir-x1860-a1*initramfs-kernel.bin' -print -quit)"
+          test -n "$image"
+          dumpimage -l "$image"
+          bash "$GITHUB_WORKSPACE/scripts/inspect-ram.sh" "$image"
+          sha256sum "$image"
+          mkdir -p "$RUNNER_TEMP/a1-research"
+          cp "$image" "$RUNNER_TEMP/a1-research/"
+          cd "$RUNNER_TEMP/a1-research"
+          sha256sum "$(basename "$image")" > SHA256SUMS
+          printf '%s\n' 'Experimental RAM-only research image. Not safe to flash. No hardware validation.' > WARNING.txt
+          echo 'Compile result only; not hardware validated and not safe to flash.'
+      - name: Retain RAM-only research artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: A1-RAM-ONLY-NOT-FOR-FLASHING
+          path: ${{ runner.temp }}/a1-research/
+          retention-days: 7
+          if-no-files-found: error
